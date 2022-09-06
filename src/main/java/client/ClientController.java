@@ -1,8 +1,6 @@
 package client;
 
-import common.AbstractMessage;
-import common.FileMessage;
-import common.FileRequest;
+import common.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -16,6 +14,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class ClientController implements Initializable {
@@ -44,21 +44,25 @@ public class ClientController implements Initializable {
     private ListView<Integer> fileSizesCloud;
     @FXML
     private ListView<Integer> fileSizesLocal;
-    @FXML
-    private Button refreshCloudButton;
-    @FXML
-    private Button refreshLocalButton;
+
     @FXML
     private Button sendCloudButton;
     @FXML
     private Button sendLocalButton;
 
-    private String selectedRecipient;
+    private Map<Integer,String> selectedFiles;
+
+    private static final int CLIENT_FILE = 0;
+    private static final int CLOUD_FILE = 1;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Network.start();
+        showClientFiles();
         showServerFiles();
+        selectedFiles = new HashMap<>(2);
+        selectedFiles.put(CLIENT_FILE,"");                 // выбранный файл на стороне клиента, "" - если файл не выбран
+        selectedFiles.put(CLOUD_FILE,"");                  // выбранный файл на стороне облака, "" - если файл не выбран
         Thread t = new Thread(() -> {
             try {
                 while (true) {
@@ -68,6 +72,10 @@ public class ClientController implements Initializable {
                         Files.write(Paths.get("client_storage/" + fm.getFilename()), fm.getData(),
                                 StandardOpenOption.CREATE);
                         refreshLocalFilesList();
+                    }
+                    if (am instanceof RefreshServerMessage) {
+                        refreshCloudFilesList();
+                        selectedFiles.put(CLOUD_FILE,"");
                     }
                 }
             } catch (ClassNotFoundException | IOException e) {
@@ -79,25 +87,36 @@ public class ClientController implements Initializable {
         t.setDaemon(true);
         t.start();
         fileListLocal.setItems(FXCollections.observableArrayList());
+        fileListCloud.setItems(FXCollections.observableArrayList());
         refreshLocalFilesList();
+        refreshCloudFilesList();
     }
 
     private void showServerFiles() {
         refreshCloudFilesList();
-        fileListCloud.setCellFactory(lv -> {
-            MultipleSelectionModel<String> selectionModel = fileListCloud.getSelectionModel();
+        cellClickLogic(fileListCloud, CLOUD_FILE);
+    }
+
+    private void showClientFiles() {
+        refreshLocalFilesList();
+        cellClickLogic(fileListLocal, CLIENT_FILE);
+    }
+
+    private void cellClickLogic(ListView<String> fileList, Integer side) {
+        fileList.setCellFactory(lv -> {
+            MultipleSelectionModel<String> selectionModel = fileList.getSelectionModel();
             ListCell<String> cell = new ListCell<>();
             cell.textProperty().bind(cell.itemProperty());
             cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-                fileListCloud.requestFocus();
+                fileList.requestFocus();
                 if (!cell.isEmpty()) {
                     int index = cell.getIndex();
                     if (selectionModel.getSelectedIndices().contains(index)) {
                         selectionModel.clearSelection(index);
-                        selectedRecipient = null;
+                        selectedFiles.put(side,"");
                     } else {
                         selectionModel.select(index);
-                        selectedRecipient = cell.getItem();
+                        selectedFiles.put(side,cell.getItem());
                     }
                     event.consume();
                 }
@@ -106,84 +125,92 @@ public class ClientController implements Initializable {
         });
     }
 
-    public void refreshLocalFilesList() {
-        if (Platform.isFxApplicationThread()) {
-            try {
-                fileListLocal.getItems().clear();
-                Files.list(Paths.get("client_storage")).map(p -> p.getFileName().toString()).forEach(o -> fileListLocal.getItems().add(o));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            Platform.runLater(() -> {
+
+    private void refreshFilesList(ListView<String> fileList, ListView<Integer> fileSizes, String storage) {
+        try {
+            fileList.getItems().clear();
+            fileSizes.getItems().clear();
+            Files.list(Paths.get(storage)).map(p -> p.getFileName().toString()).forEach(o -> fileList.getItems().add(o));
+            Files.list(Paths.get(storage)).map(p -> {
                 try {
-                    fileListLocal.getItems().clear();
-                    Files.list(Paths.get("client_storage")).map(p -> p.getFileName().toString()).forEach(o -> fileListLocal.getItems().add(o));
+                    return Files.size(p);
                 } catch (IOException e) {
                     e.printStackTrace();
+                    return null;
                 }
+            }).forEach(o -> fileSizes.getItems().add(Math.toIntExact(o)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void refreshLocalFilesList() {
+        if (Platform.isFxApplicationThread()) {
+            refreshFilesList(fileListLocal, fileSizesLocal,"client_storage");
+        } else {
+            Platform.runLater(() -> {
+                refreshFilesList(fileListLocal, fileSizesLocal, "client_storage");
             });
         }
     }
 
+
     public void refreshCloudFilesList() {
         if (Platform.isFxApplicationThread()) {
-            try {
-                fileListCloud.getItems().clear();
-                Files.list(Paths.get("server_storage"))
-                        .map(p -> p.getFileName().toString()).forEach(o -> fileListCloud.getItems().add(o));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            refreshFilesList(fileListCloud, fileSizesCloud, "server_storage");
         } else {
             Platform.runLater(() -> {
-                try {
-                    fileListCloud.getItems().clear();
-                    Files.list(Paths.get("server_storage"))
-                            .map(p -> p.getFileName().toString()).forEach(o -> fileListCloud.getItems().add(o));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                refreshFilesList(fileListCloud, fileSizesCloud, "server_storage");
             });
         }
     }
 
     @FXML
     void sendToClient(ActionEvent event) {
-        String FileName = selectedRecipient;
-        if (FileName.length() > 0) {
-            Network.sendMsg(new FileRequest(FileName));
- //           FileName.clear();
+        String fileName = selectedFiles.get(CLOUD_FILE);
+        if (fileName.length()>0) {
+            Network.sendMsg(new FileRequest(fileName));
         }
+    }
+
+    @FXML
+    void sendToCloud(ActionEvent event) throws IOException {
+        String fileName = selectedFiles.get(CLIENT_FILE);
+        if (fileName.length()>0) {
+            Network.sendMsg(new FileMessage(Paths.get("client_storage/" + fileName)));
+        }
+
     }
 
 
 
     @FXML
     void deleteFromCloud(ActionEvent event) {
-
+        String fileName = selectedFiles.get(CLOUD_FILE);
+        if (fileName.length()>0) {
+            Network.sendMsg(new DeleteFileRequest(fileName));
+        }
     }
 
     @FXML
     void deleteLocalFile(ActionEvent event) {
-
+        String fileName = selectedFiles.get(CLIENT_FILE);
+        if (fileName.length()>0) {
+            try {
+                Files.delete(Paths.get("client_storage/" + fileName));
+                refreshLocalFilesList();
+                selectedFiles.put(CLIENT_FILE,"");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    @FXML
-    void refreshCloudDir(ActionEvent event) {
-
-    }
-
-    @FXML
-    void refreshLocalDir(ActionEvent event) {
-
-    }
 
 
-    @FXML
-    void sendToCloud(ActionEvent event) {
 
-    }
+
 }
 
 

@@ -10,7 +10,7 @@
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.ClientController">
    <bottom>
-      <SplitPane dividerPositions="0.16667, 0.33333, 0.5, 0.66667, 0.83333" prefHeight="32.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+      <SplitPane dividerPositions="0.255, 0.5, 0.759" prefHeight="32.0" prefWidth="600.0" BorderPane.alignment="CENTER">
          <items>
             <AnchorPane prefHeight="200.0" prefWidth="200.0">
                <children>
@@ -24,22 +24,12 @@
             </AnchorPane>
             <AnchorPane prefHeight="200.0" prefWidth="200.0">
                <children>
-                  <Button fx:id="refreshLocalButton" layoutX="28.0" layoutY="1.0" mnemonicParsing="false" onAction="#refreshLocalDir" text="Refresh" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-               </children>
-            </AnchorPane>
-            <AnchorPane prefHeight="200.0" prefWidth="200.0">
-               <children>
                   <Button fx:id="sendCloudButton" layoutX="21.0" layoutY="5.0" mnemonicParsing="false" onAction="#sendToClient" text="&lt;&lt; Send" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
             <AnchorPane prefHeight="200.0" prefWidth="200.0">
                <children>
                   <Button fx:id="deleteCloudButton" layoutX="21.0" layoutY="10.0" mnemonicParsing="false" onAction="#deleteFromCloud" text="Delete" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-               </children>
-            </AnchorPane>
-            <AnchorPane prefHeight="200.0" prefWidth="200.0">
-               <children>
-                  <Button fx:id="refreshCloudButton" layoutY="8.0" mnemonicParsing="false" onAction="#refreshCloudDir" text="Refresh" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
          </items>

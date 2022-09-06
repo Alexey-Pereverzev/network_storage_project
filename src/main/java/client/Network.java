@@ -43,8 +43,6 @@ public class Network {
     public static boolean sendMsg(AbstractMessage msg) {
         try {
             out.writeObject(msg);
-//            FileRequest fr = (FileRequest) msg;
-//            System.out.println("out >> " + fr.getFilename()); // что ушло
             return true;
         } catch (IOException e) {
             e.printStackTrace();

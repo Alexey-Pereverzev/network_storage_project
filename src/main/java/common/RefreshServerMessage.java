@@ -1,14 +1,16 @@
 package common;
 
 
-public class FileRequest extends AbstractMessage {
+public class RefreshServerMessage extends AbstractMessage {
     private String filename;
 
     public String getFilename() {
         return filename;
     }
 
-    public FileRequest(String filename) {
+    public RefreshServerMessage(String filename) {
         this.filename = filename;
     }
 }
+
+

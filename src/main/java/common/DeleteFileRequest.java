@@ -1,14 +1,14 @@
 package common;
 
 
-public class FileRequest extends AbstractMessage {
+public class DeleteFileRequest extends AbstractMessage {
     private String filename;
 
     public String getFilename() {
         return filename;
     }
 
-    public FileRequest(String filename) {
+    public DeleteFileRequest(String filename) {
         this.filename = filename;
     }
 }

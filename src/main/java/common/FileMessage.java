@@ -7,6 +7,8 @@ import java.nio.file.Path;
 public class FileMessage extends AbstractMessage {
     private String filename;
     private byte[] data;
+    private boolean exists;
+
 
     public String getFilename() {
         return filename;
@@ -17,6 +19,7 @@ public class FileMessage extends AbstractMessage {
     }
 
     public FileMessage(Path path) throws IOException {
+        exists = Files.exists(path);
         filename = path.getFileName().toString();
         data = Files.readAllBytes(path);
     }
