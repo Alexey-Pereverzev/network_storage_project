@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="318.0" prefWidth="495.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="client.AuthController">
+    <children>
+        <TextField fx:id="loginField" layoutX="161.0" layoutY="60.0">
+            <font>
+                <Font size="24.0"/>
+            </font>
+        </TextField>
+        <PasswordField fx:id="passwordField" layoutX="161.0" layoutY="159.0" onAction="#checkAuth">
+            <font>
+                <Font size="24.0"/>
+            </font>
+        </PasswordField>
+        <Label layoutX="28.0" layoutY="68.0" text="Login">
+            <font>
+                <Font size="24.0"/>
+            </font>
+        </Label>
+        <Label layoutX="28.0" layoutY="167.0" text="Password">
+            <font>
+                <Font size="24.0"/>
+            </font>
+        </Label>
+        <Button fx:id="sendButton" layoutX="196.0" layoutY="258.0" mnemonicParsing="false" onAction="#checkAuth"
+                text="Sign in">
+            <font>
+                <Font size="24.0"/>
+            </font>
+        </Button>
+    </children>
+</AnchorPane>
