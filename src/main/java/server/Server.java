@@ -11,15 +11,27 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
+import server.authentication.AuthenticationService;
+import server.authentication.DBAuthenticationService;
+
+import java.util.HashMap;
 
 public class Server {
 
-    public static final int MAX_OBJECT_SIZE = 10 * 1024 * 1024;
+    public static final int MAX_OBJECT_SIZE = 100 * 1024 * 1024;
+    private final AuthenticationService authenticationService;
 
-    public Server() {
+    public AuthenticationService getAuthenticationService() {
+        return authenticationService;
+    }
+
+    public Server(AuthenticationService authenticationService) {
+        ObjectRegistry.reg(Server.class,this);
+        this.authenticationService = authenticationService;
     }
 
     public void run() throws Exception {
+        authenticationService.startAuthentication();
         EventLoopGroup mainGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -32,22 +44,23 @@ public class Server {
                             socketChannel.pipeline().addLast(
                                     new ObjectDecoder(MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
-                                    new MainHandler()
+                                    new MainHandler(new HashMap<>())
                             );
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
-            ChannelFuture future = b.bind(8189).sync();
+            ChannelFuture future = b.bind(32323).sync();
             future.channel().closeFuture().sync();
         } finally {
             mainGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+            authenticationService.endAuthentication();
         }
     }
 
     public static void main(String[] args) throws Exception {
-        new Server().run();
+        new Server(new DBAuthenticationService()).run();            //  запускаем сервер с авторизацией через БД
     }
 }
 

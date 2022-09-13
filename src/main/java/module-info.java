@@ -5,16 +5,16 @@ module network_storage_project {
 
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;
-    requires validatorfx;
     requires org.kordamp.ikonli.javafx;
+    requires validatorfx;
     requires org.kordamp.bootstrapfx.core;
-    requires eu.hansolo.tilesfx;
     requires io.netty.all;
     requires java.datatransfer;
+    requires java.sql;
 
     opens client to javafx.fxml;
     exports client;
 
-    opens common to javafx.fxml;
-    exports common;
+    opens common.messages to javafx.fxml;
+    exports common.messages;
 }

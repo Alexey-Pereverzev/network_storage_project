@@ -1,6 +1,6 @@
 package client;
 
-import common.*;
+import common.messages.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -50,59 +49,43 @@ public class ClientController implements Initializable {
     @FXML
     private Button sendLocalButton;
 
-    private Map<Integer,String> selectedFiles;
+    private Map<Integer, String> selectedFiles;
 
     private static final int CLIENT_FILE = 0;
     private static final int CLOUD_FILE = 1;
+    private static NettyClient nettyClient = ObjectRegistry.getInstance(NettyClient.class);
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        Network.start();
-        showClientFiles();
-        showServerFiles();
+        ObjectRegistry.reg(this.getClass(), this);
         selectedFiles = new HashMap<>(2);
-        selectedFiles.put(CLIENT_FILE,"");                 // выбранный файл на стороне клиента, "" - если файл не выбран
-        selectedFiles.put(CLOUD_FILE,"");                  // выбранный файл на стороне облака, "" - если файл не выбран
-        Thread t = new Thread(() -> {
-            try {
-                while (true) {
-                    AbstractMessage am = Network.readObject();
-                    if (am instanceof FileMessage) {
-                        FileMessage fm = (FileMessage) am;
-                        Files.write(Paths.get("client_storage/" + fm.getFilename()), fm.getData(),
-                                StandardOpenOption.CREATE);
-                        refreshLocalFilesList();
-                    }
-                    if (am instanceof RefreshServerMessage) {
-                        refreshCloudFilesList();
-                        selectedFiles.put(CLOUD_FILE,"");
-                    }
-                }
-            } catch (ClassNotFoundException | IOException e) {
-                e.printStackTrace();
-            } finally {
-                Network.stop();
-            }
-        });
-        t.setDaemon(true);
-        t.start();
+        selectedFiles.put(CLIENT_FILE, "");                 // выбранный файл на стороне клиента, "" - если файл не выбран
+        selectedFiles.put(CLOUD_FILE, "");                  // выбранный файл на стороне облака, "" - если файл не выбран
         fileListLocal.setItems(FXCollections.observableArrayList());
         fileListCloud.setItems(FXCollections.observableArrayList());
-        refreshLocalFilesList();
-        refreshCloudFilesList();
-    }
-
-    private void showServerFiles() {
-        refreshCloudFilesList();
-        cellClickLogic(fileListCloud, CLOUD_FILE);
+        showClientFiles();                                 //   показать список файлов клиента
+        try {
+            showServerFiles();                              //  показать список файлов на сервере
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private void showClientFiles() {
-        refreshLocalFilesList();
-        cellClickLogic(fileListLocal, CLIENT_FILE);
+        refreshLocalFilesList();                            //  обновить список файлов клиента и их размеров
+        cellClickLogic(fileListLocal, CLIENT_FILE);         //  установить фабрику обработки клика на список файлов клиента
     }
 
+
+    private void showServerFiles() throws IOException, ClassNotFoundException {
+        getCloudFilesList();                                //  запросить список файлов с сервера
+        cellClickLogic(fileListCloud, CLOUD_FILE);          //  установить фабрику обработки клика на список файлов сервера
+    }
+
+
     private void cellClickLogic(ListView<String> fileList, Integer side) {
+        //  логика работы фабрики кликов на список файлов
         fileList.setCellFactory(lv -> {
             MultipleSelectionModel<String> selectionModel = fileList.getSelectionModel();
             ListCell<String> cell = new ListCell<>();
@@ -113,10 +96,10 @@ public class ClientController implements Initializable {
                     int index = cell.getIndex();
                     if (selectionModel.getSelectedIndices().contains(index)) {
                         selectionModel.clearSelection(index);
-                        selectedFiles.put(side,"");
+                        selectedFiles.put(side, "");
                     } else {
                         selectionModel.select(index);
-                        selectedFiles.put(side,cell.getItem());
+                        selectedFiles.put(side, cell.getItem());
                     }
                     event.consume();
                 }
@@ -125,20 +108,19 @@ public class ClientController implements Initializable {
         });
     }
 
-
-    private void refreshFilesList(ListView<String> fileList, ListView<Integer> fileSizes, String storage) {
+    private void refreshLocal() {                   //  обновление списка локальных файлов - логика
         try {
-            fileList.getItems().clear();
-            fileSizes.getItems().clear();
-            Files.list(Paths.get(storage)).map(p -> p.getFileName().toString()).forEach(o -> fileList.getItems().add(o));
-            Files.list(Paths.get(storage)).map(p -> {
+            fileListLocal.getItems().clear();
+            fileSizesLocal.getItems().clear();
+            Files.list(Paths.get("client_storage")).map(p -> p.getFileName().toString()).forEach(o -> fileListLocal.getItems().add(o));
+            Files.list(Paths.get("client_storage")).map(p -> {
                 try {
                     return Files.size(p);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return null;
                 }
-            }).forEach(o -> fileSizes.getItems().add(Math.toIntExact(o)));
+            }).forEach(o -> fileSizesLocal.getItems().add(Math.toIntExact(o)));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -146,69 +128,82 @@ public class ClientController implements Initializable {
 
 
     public void refreshLocalFilesList() {
+                                            //  обновление списка локальных файлов - помещение процедуры в поток JavaFX
         if (Platform.isFxApplicationThread()) {
-            refreshFilesList(fileListLocal, fileSizesLocal,"client_storage");
+            refreshLocal();
         } else {
             Platform.runLater(() -> {
-                refreshFilesList(fileListLocal, fileSizesLocal, "client_storage");
+                refreshLocal();
             });
         }
     }
 
 
-    public void refreshCloudFilesList() {
+    public void getCloudFilesList() {                       //  обновление списка локальных файлов
         if (Platform.isFxApplicationThread()) {
-            refreshFilesList(fileListCloud, fileSizesCloud, "server_storage");
+            nettyClient.sendMsg(new CloudFileListRequest());
         } else {
             Platform.runLater(() -> {
-                refreshFilesList(fileListCloud, fileSizesCloud, "server_storage");
+                nettyClient.sendMsg(new CloudFileListRequest());
             });
         }
     }
 
+    protected void processRefreshServerMessage(RefreshServerMessage am) {
+                            // обработка сообщения от сервера со списком файлов - помещение файлов и их размеров на форму
+        fileListCloud.getItems().clear();
+        fileSizesCloud.getItems().clear();
+        RefreshServerMessage rsm = am;
+        for (int i = 0; i < rsm.getFileNames().size(); i++) {
+            fileListCloud.getItems().add(i, rsm.getFileNames().get(i));
+            fileSizesCloud.getItems().add(i, rsm.getFileSizes().get(i));
+        }
+        selectedFiles.put(CLOUD_FILE, "");
+    }
+
     @FXML
-    void sendToClient(ActionEvent event) {
+    void sendToClient(ActionEvent event) {                              //  скачать файл с сервера
         String fileName = selectedFiles.get(CLOUD_FILE);
-        if (fileName.length()>0) {
-            Network.sendMsg(new FileRequest(fileName));
+        if (fileName.length() > 0) {
+            nettyClient.sendMsg(new FileRequest(fileName));             //  запрос на сервер на скачивание файла
         }
     }
 
     @FXML
-    void sendToCloud(ActionEvent event) throws IOException {
+    void sendToCloud(ActionEvent event) throws IOException {        //  отправить файл в облако
         String fileName = selectedFiles.get(CLIENT_FILE);
-        if (fileName.length()>0) {
-            Network.sendMsg(new FileMessage(Paths.get("client_storage/" + fileName)));
-        }
-
-    }
-
-
-
-    @FXML
-    void deleteFromCloud(ActionEvent event) {
-        String fileName = selectedFiles.get(CLOUD_FILE);
-        if (fileName.length()>0) {
-            Network.sendMsg(new DeleteFileRequest(fileName));
-        }
-    }
-
-    @FXML
-    void deleteLocalFile(ActionEvent event) {
-        String fileName = selectedFiles.get(CLIENT_FILE);
-        if (fileName.length()>0) {
-            try {
-                Files.delete(Paths.get("client_storage/" + fileName));
-                refreshLocalFilesList();
-                selectedFiles.put(CLIENT_FILE,"");
-            } catch (IOException e) {
-                e.printStackTrace();
+        if (fileName.length() > 0) {
+            if (Files.size(Paths.get(("client_storage/" + fileName))) <= NettyClient.MAX_OBJECT_SIZE) {
+                nettyClient.sendMsg(new FileMessage(Paths.get("client_storage/" + fileName)));
+            } else {
+                System.out.println("File is too big for now!");     //  если размер файла больше максимального размера куска,
+                //  то пока ничего не делаем, далее здесь должна появиться логика отправки по частям
             }
         }
     }
 
 
+    @FXML
+    void deleteFromCloud(ActionEvent event) {                           //  удалить файл на облаке
+        String fileName = selectedFiles.get(CLOUD_FILE);
+        if (fileName.length() > 0) {
+            nettyClient.sendMsg(new DeleteFileRequest(fileName));       //  запрос на удаление файла с сервера
+        }
+    }
 
+    @FXML
+    void deleteLocalFile(ActionEvent event) {                           //  удаление локального файла
+        String fileName = selectedFiles.get(CLIENT_FILE);
+        if (fileName.length() > 0) {
+            try {
+                Files.delete(Paths.get("client_storage/" + fileName));
+                refreshLocalFilesList();
+                selectedFiles.put(CLIENT_FILE, "");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 
 }
