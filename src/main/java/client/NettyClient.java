@@ -16,7 +16,10 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 
 public class NettyClient {
 
-    public static final int MAX_OBJECT_SIZE = 100 * 1024 * 1024;
+    public static final int MAX_FILE_SIZE = 10 * 1024 * 1024;
+    public static final int MAX_OBJECT_SIZE = MAX_FILE_SIZE * 2;    //  максимальныцй размер объекта должен быть больше
+    // максимального размера куска файла, т.к. иначе некоторые сообщения от сервера, внутри которых лежит такой кусок, не         // "пролезут" через декодер
+
 
     private final Channel clientChannel;
 
@@ -45,11 +48,11 @@ public class NettyClient {
     public void sendMsg(AbstractMessage msg) {      //  отправка сообщения на сервер
         try {
             clientChannel.writeAndFlush(msg).sync();
+            System.out.println(msg.getClass().toString());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
     }
-
 
 }

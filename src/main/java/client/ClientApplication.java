@@ -15,17 +15,22 @@ public class ClientApplication extends Application {
 
     private Stage primaryStage;
     private Stage authStage;
-    private String username="";
-    private boolean authorized=false;
+    private String username = "";
+    private boolean authorized = false;
+    private static NettyClient nettyClient = ObjectRegistry.getInstance(NettyClient.class);
 
     public void setUsername(String username) {
         this.username = username;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
     @Override
     public void start(Stage stage) throws IOException {
         this.primaryStage = stage;
-        ObjectRegistry.reg(ClientApplication.class,this);
+        ObjectRegistry.reg(ClientApplication.class, this);
         authAndWork();
     }
 
@@ -57,27 +62,33 @@ public class ClientApplication extends Application {
         primaryStage.setX(200);
         primaryStage.setY(200);
         primaryStage.setResizable(false);
-        primaryStage.setOnCloseRequest((EventHandler<javafx.stage.WindowEvent>) event -> {
-            ObjectRegistry.getInstance(NettyClient.class).sendMsg(new ExitMessage());
-                                                // сообщение серверу, что мы завершаем работу
+        primaryStage.setOnCloseRequest((EventHandler) event -> {
+            nettyClient.sendMsg(new ExitMessage(username));
+            System.out.println("EXIT");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             System.exit(0);
         });
     }
 
     public void openStorageWindow() throws IOException, InterruptedException {
-                                                //  запускаем, если авторизация удачная
+        //  запускаем, если авторизация удачная
         authStage.close();                      //  закрываем окно авторизации
         primaryStage.show();                    //  открываем основную сцену
-        primaryStage.setTitle("Alex Cloud - " + username);  //  утсанавливаем заголовок с именем пользователя
+        primaryStage.setTitle("Alex Cloud - " + username);  //  устанавливаем заголовок с именем пользователя
     }
 
 
     public void showErrorAlert(String title, String errorMessage) {
-                                                //  сообщение об ошибке авторизации
+        //  сообщение об ошибке авторизации
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(errorMessage);
         alert.show();
+
     }
 
     public static void main(String[] args) {
