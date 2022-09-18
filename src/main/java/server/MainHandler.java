@@ -7,6 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -158,7 +159,10 @@ public class MainHandler extends ChannelInboundHandlerAdapter {             //  
                                     //  отправляем часть файла
                             Files.delete(Path.of(partPathName));        //  удаляем часть
                         }
-                        Files.delete(Path.of(ROOT_PREFIX + "temp/"));   //  удаляем директорию /temp
+                        String[] files = new File((ROOT_PREFIX + "temp/")).list();
+                        if (files.length == 0) {
+                            Files.delete(Path.of(ROOT_PREFIX + "temp/"));   //  удаляем директорию /temp
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

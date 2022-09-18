@@ -7,7 +7,6 @@ import common.other.PartiallySentEntry;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import javafx.application.Platform;
-import server.Server;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -121,7 +120,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         }
         if (allPartsHere) {         //  если всё принято
             FileCollect fileCollect = new FileCollect(Path.of(rootPrefix + fileName));
-            int size = server.ObjectRegistry.getInstance(Server.class).MAX_FILE_SIZE;
+            int size = ObjectRegistry.getInstance(NettyClient.class).MAX_FILE_SIZE;
             fileCollect.collectFile(size, rootPrefix, parts, fileName);         //  собираем файл из частей
             clientController.refreshLocalFilesList();                       //  обновляем GUI клиента
             listOfAllPartialUploads.remove(listOfFileParts);            //  удаляем закачку из списка закачек

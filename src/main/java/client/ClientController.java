@@ -11,6 +11,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -197,7 +198,10 @@ public class ClientController implements Initializable {
                             nettyClient.sendMsg(new FilePartMessage(fileName, index, parts, filePartName, partPath));
                             Files.delete(Path.of(partPathName));           // отправляем часть и удаляем ее
                         }
-                        Files.delete(Path.of(ROOT_PREFIX + "temp/"));
+                        String[] files = new File((ROOT_PREFIX + "temp/")).list();
+                        if (files.length == 0) {
+                            Files.delete(Path.of(ROOT_PREFIX + "temp/"));   //  удаляем директорию /temp
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
