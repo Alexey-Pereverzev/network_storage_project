@@ -6,22 +6,25 @@ public class DBAuthenticationService implements AuthenticationService {
 
     private Connection connection;
     private Statement stmt;
-    private ResultSet rs;
 
     @Override
-    public boolean authUserByLoginAndPassword(String login, String password) throws SQLException {
-                    //  авторизация по логину и паролю, возвращает успешна ли авторизация
-        rs = stmt.executeQuery(String.format("SELECT * FROM auth WHERE login = '%s'", login));
+    public String authUserByLoginAndPassword(String login, String password) throws SQLException {
+                    //  авторизация по логину и паролю, возвращает "ок", если авторизация успешна или сообщение об ошибке
+        ResultSet rs = stmt.executeQuery(String.format("SELECT * FROM auth WHERE login = '%s'", login));
         if (rs.isClosed()) {
-            return false;
+            return "Ошибка авторизации";
         }
         String username = rs.getString("login");
         String passwordDB = rs.getString("password");
 
         if (username!=null && passwordDB != null) {
-            return passwordDB.equals(password) && username.equals(login);
+            if (passwordDB.equals(password) && username.equals(login)) {
+                return "ok";
+            } else {
+                return "Неверное имя пользователя и/или пароль";
+            }
         } else {
-            return false;
+            return "Ошибка авторизации";
         }
     }
 
@@ -36,6 +39,5 @@ public class DBAuthenticationService implements AuthenticationService {
     public void endAuthentication() throws SQLException {
         connection.close();
     }
-
 
 }

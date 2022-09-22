@@ -19,8 +19,8 @@ public class AuthController {                       //      контроллер
 
     @FXML
     public void checkAuth(ActionEvent actionEvent) throws IOException, InterruptedException {
-                    //  считываем логин и пароль, если они не пустые, отправляем на сервер запрос на авторизацию
-                    //  в противном случае выдаем предупреждение
+        //  считываем логин и пароль, если они не пустые, отправляем на сервер запрос на авторизацию
+        //  в противном случае выдаем предупреждение
         String login = loginField.getText().trim();
         String password = passwordField.getText().trim();
         if (login.length() == 0 || password.length() == 0) {

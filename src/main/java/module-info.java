@@ -11,6 +11,7 @@ module network_storage_project {
     requires io.netty.all;
     requires java.datatransfer;
     requires java.sql;
+    requires org.xerial.sqlitejdbc;
 
     opens client to javafx.fxml;
     exports client;
