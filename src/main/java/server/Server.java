@@ -18,6 +18,8 @@ public class Server {
     public static final int MAX_FILE_SIZE = 10 * 1024 * 1024;
     public static final int MAX_OBJECT_SIZE = MAX_FILE_SIZE * 2;    //  максимальныцй размер объекта должен быть больше
     // максимального размера куска файла, т.к. иначе некоторые сообщения от клиента, внутри которых лежит такой кусок, не         // "пролезут" через декодер
+    public static final String ROOT_PATH = "server_storage";
+    public static final String ROOT_PREFIX = ROOT_PATH + "/";
     private final AuthenticationService authenticationService;
     private HashMap<String, ChannelHandlerContext> authorizedClients;
 
@@ -45,8 +47,7 @@ public class Server {
                             socketChannel.pipeline().addLast(
                                     new ObjectDecoder(MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
-                                    new AuthHandler(authorizedClients),
-                                    new MainHandler()
+                                    new AuthHandler(authorizedClients)
                             );
                         }
                     })
@@ -62,7 +63,7 @@ public class Server {
     }
 
     public static void main(String[] args) throws Exception {
-        new Server(new DBAuthenticationService(), new HashMap<>()).run();          //  запускаем сервер с авторизацией через БД
+        new Server(new DBAuthenticationService(new HashEncoder()), new HashMap<>()).run();          //  запускаем сервер с авторизацией через БД
     }
 }
 

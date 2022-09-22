@@ -8,13 +8,20 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 import server.authentication.AuthenticationService;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.HashMap;
 
+import static server.Server.ROOT_PREFIX;
 
 public class AuthHandler extends ChannelInboundHandlerAdapter {
     private HashMap<String, ChannelHandlerContext> authorizedClients;
     //  мэпа для сохранения авторизованных пользователей
+    private String rootDirPrefix;
+    private String rootDirPath;
+
 
     public AuthHandler(HashMap<String, ChannelHandlerContext> authorizedClients) {
         this.authorizedClients = authorizedClients;
@@ -38,7 +45,15 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
                     String authMessage = processAuthentication(auth.getLogin(), auth.getPassword());
 
                     if (authMessage.equals("ok")) {
-                        authorizedClients.put(auth.getLogin(), ctx);
+                        String s = auth.getLogin();
+                        authorizedClients.put(s, ctx);
+                        rootDirPath = ROOT_PREFIX + s;
+                        rootDirPrefix = rootDirPath + "/";
+                        if (Files.notExists(Path.of(rootDirPath))) {
+                            Files.createDirectories(Path.of(rootDirPrefix));
+                        }
+                        ctx.pipeline().addLast(new MainHandler(rootDirPath));
+
                         //  если авторизация успешна, добавляем пользователя в мэпу
                     } else {
                         System.out.println("Неудачная попытка аутентификации");
@@ -51,6 +66,7 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
                 System.out.println("КЛИЕНТ ОТКЛЮЧИЛСЯ!");
                 ExitMessage em = (ExitMessage) msg;
                 authorizedClients.remove(em.getLogin());      //  удаляем его из мэпы
+                Files.deleteIfExists(Path.of(rootDirPrefix + "temp/"));    //  удаление временной директории
                 ctx.close();                        //  и закрываем соединение
             } else {
                 ctx.fireChannelRead(msg);
@@ -66,7 +82,7 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
         AuthenticationService auth = s.getAuthenticationService();
         try {
             return auth.authUserByLoginAndPassword(login, password);
-        } catch (SQLException e) {
+        } catch (SQLException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
         return "Ошибка авторизации";

@@ -1,6 +1,5 @@
 package server;
 
-import client.NettyClient;
 import common.messages.*;
 import common.other.*;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,12 +16,17 @@ import java.util.ArrayList;
 
 
 public class MainHandler extends ChannelInboundHandlerAdapter {             //  основной хендлер
-    public static final String ROOT_PATH = "server_storage";
-    public static final String ROOT_PREFIX = ROOT_PATH + "/";
+
     private ArrayList<ListOfFileParts> listOfAllPartialUploads; //  список всех отправок по частям, которые обрабатываются
                                                                 //  в данный момент
+    private String rootDirPath;
+    private String rootDirPrefix;
 
-    public MainHandler() {
+
+
+    public MainHandler(String rootDirPath) {
+        this.rootDirPath = rootDirPath;
+        this.rootDirPrefix = rootDirPath + "/";
         ObjectRegistry.reg(MainHandler.class,this);
         listOfAllPartialUploads = new ArrayList<>();
     }
@@ -59,7 +63,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {             //  
 
     private void acceptFileLogic(ChannelHandlerContext ctx, FileMessage msg, ArrayList<String> fileNames, ArrayList<Integer> fileSizes) throws IOException {            //  если нам прислали файл,
         FileMessage fm = msg;     //сохраняем файл в папку
-        Files.write(Paths.get(ROOT_PREFIX + fm.getFilename()), fm.getData(),
+        Files.write(Paths.get(rootDirPrefix + fm.getFilename()), fm.getData(),
                 StandardOpenOption.CREATE);
         getCloudFilesWithSizes(fileNames, fileSizes);
         ctx.writeAndFlush(new RefreshServerMessage(fileNames, fileSizes));
@@ -69,7 +73,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {             //  
     private void deleteFileLogic(ChannelHandlerContext ctx, DeleteFileRequest msg, ArrayList<String> fileNames, ArrayList<Integer> fileSizes) {             //  если получили запрос на удаление файла
         DeleteFileRequest dfr = msg;
         try {
-            Files.delete(Paths.get(ROOT_PREFIX + dfr.getFilename()));
+            Files.delete(Paths.get(rootDirPrefix + dfr.getFilename()));
                                                 //  удаление файла
             getCloudFilesWithSizes(fileNames, fileSizes);
             ctx.writeAndFlush(new RefreshServerMessage(fileNames, fileSizes));
@@ -103,12 +107,12 @@ public class MainHandler extends ChannelInboundHandlerAdapter {             //  
             listOfAllPartialUploads.add(listOfFileParts);           //  добавляем закачку данного файла в список закачек
             PartiallySentEntry pseNew = new PartiallySentEntry(filePartName, false);
             listOfFileParts.addEntries(pseNew, index);
-            Files.createDirectories(Paths.get(ROOT_PREFIX + "temp/"));
-            Files.write(Paths.get(ROOT_PREFIX + "temp/" + filePartName), fpm.getData(),
+            Files.createDirectories(Paths.get(rootDirPrefix + "temp/"));
+            Files.write(Paths.get(rootDirPrefix + "temp/" + filePartName), fpm.getData(),
                     StandardOpenOption.CREATE);                 //  сохраняем часть в /temp
             listOfFileParts.setEntries(index, true);            //  ставим флажок, что данная часть принята
         } else {                                 //  если приемка данного файла уже идёт
-                Files.write(Paths.get(ROOT_PREFIX + "temp/" + filePartName), fpm.getData(),
+                Files.write(Paths.get(rootDirPrefix + "temp/" + filePartName), fpm.getData(),
                         StandardOpenOption.CREATE);               //  сохраняем часть в /temp
                 listOfFileParts.addEntries(new PartiallySentEntry(filePartName, true), index);
             //  ставим флажок, что данная часть принята
@@ -122,9 +126,9 @@ public class MainHandler extends ChannelInboundHandlerAdapter {             //  
             }
         }
         if (allPartsHere) {                  //  если всё принято
-            FileCollect fileCollect = new FileCollect(Path.of(ROOT_PREFIX + fileName));
+            FileCollect fileCollect = new FileCollect(Path.of(rootDirPrefix + fileName));
             int size = ObjectRegistry.getInstance(Server.class).MAX_FILE_SIZE;
-            fileCollect.collectFile(size, ROOT_PREFIX, parts, fileName);         //  собираем файл из частей
+            fileCollect.collectFile(size, rootDirPrefix, parts, fileName);         //  собираем файл из частей
             getCloudFilesWithSizes(fileNames, fileSizes);
             Thread.sleep(100);
             ctx.writeAndFlush(new RefreshServerMessage(fileNames, fileSizes));   //  обновляем GUI клиента
@@ -135,15 +139,15 @@ public class MainHandler extends ChannelInboundHandlerAdapter {             //  
     private void fileRequestLogic(ChannelHandlerContext ctx, FileRequest msg) throws IOException {
         //      если получили запрос на скачивание
         FileRequest fr = msg;
-        if (Files.exists(Paths.get(ROOT_PREFIX + fr.getFilename()))) {
+        if (Files.exists(Paths.get(rootDirPrefix + fr.getFilename()))) {
             String fileName = fr.getFilename();
-            Path path = Paths.get(ROOT_PREFIX + fileName);
-            if (Files.size(Paths.get(ROOT_PREFIX + fr.getFilename()))<=Server.MAX_FILE_SIZE) {
+            Path path = Paths.get(rootDirPrefix + fileName);
+            if (Files.size(Paths.get(rootDirPrefix + fr.getFilename()))<=Server.MAX_FILE_SIZE) {
                     //  если файл можно отправить целиком
-                FileMessage fm = new FileMessage(Paths.get(ROOT_PREFIX + fr.getFilename()));
+                FileMessage fm = new FileMessage(Paths.get(rootDirPrefix + fr.getFilename()));
                 ctx.writeAndFlush(fm);          //  отправка файла
             } else {            //  если файл надо разбить на части
-                int parts = new FileCut(path).cutFile(NettyClient.MAX_FILE_SIZE, ROOT_PREFIX);
+                int parts = new FileCut(path).cutFile(Server.MAX_FILE_SIZE, rootDirPrefix);
                                 //  режем его на части
                 int dimension = (int) (Math.log10(parts) + 1);
 
@@ -152,16 +156,16 @@ public class MainHandler extends ChannelInboundHandlerAdapter {             //  
                         String filePartName = "";
                         for (int i = 0; i < parts; i++) {
                             filePartName = String.valueOf(path.getFileName()).concat(Ending.ending(i,dimension));
-                            String partPathName = ROOT_PREFIX + "temp/" + filePartName;
-                            Path partPath = Path.of(ROOT_PREFIX + "temp/" + filePartName);
+                            String partPathName = rootDirPrefix + "temp/" + filePartName;
+                            Path partPath = Path.of(rootDirPrefix + "temp/" + filePartName);
                             int index = i;
                             ctx.writeAndFlush(new FilePartMessage(fileName, index, parts, filePartName, partPath));
                                     //  отправляем часть файла
                             Files.delete(Path.of(partPathName));        //  удаляем часть
                         }
-                        String[] files = new File((ROOT_PREFIX + "temp/")).list();
+                        String[] files = new File((rootDirPrefix + "temp/")).list();
                         if (files.length == 0) {
-                            Files.delete(Path.of(ROOT_PREFIX + "temp/"));   //  удаляем директорию /temp
+                            Files.delete(Path.of(rootDirPrefix + "temp/"));   //  удаляем директорию /temp
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -177,9 +181,9 @@ public class MainHandler extends ChannelInboundHandlerAdapter {             //  
                         //  получение списка файлов сервера для передачи клиенту
         fileNames.clear();
         fileSizes.clear();
-        Files.list(Paths.get(ROOT_PATH)).map(p -> p.getFileName().toString())
+        Files.list(Paths.get(rootDirPath)).map(p -> p.getFileName().toString())
                 .forEach(o -> fileNames.add(o));
-        Files.list(Paths.get(ROOT_PATH)).map(p -> {
+        Files.list(Paths.get(rootDirPath)).map(p -> {
             try {
                 return Files.size(p);
             } catch (IOException e) {

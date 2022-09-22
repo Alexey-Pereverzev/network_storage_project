@@ -10,6 +10,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class ClientApplication extends Application {
 
@@ -65,6 +67,12 @@ public class ClientApplication extends Application {
         primaryStage.setOnCloseRequest((EventHandler) event -> {
             nettyClient.sendMsg(new ExitMessage(username));
             System.out.println("EXIT");
+            String rootPrefix =  ClientController.ROOT_PREFIX;
+            try {
+                Files.deleteIfExists(Path.of(rootPrefix + "temp/"));    //  удаление временной директории
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -78,6 +86,13 @@ public class ClientApplication extends Application {
         //  запускаем, если авторизация удачная
         authStage.close();                      //  закрываем окно авторизации
         primaryStage.show();                    //  открываем основную сцену
+        ClientController cc = ObjectRegistry.getInstance(ClientController.class);
+        cc.showClientFiles();                                 //   показать список файлов клиента
+        try {
+            cc.showServerFiles();                              //  показать список файлов на сервере
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         primaryStage.setTitle("Alex Cloud - " + username);  //  устанавливаем заголовок с именем пользователя
     }
 
