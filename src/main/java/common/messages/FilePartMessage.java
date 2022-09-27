@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class FilePartMessage extends AbstractMessage {
-    private String fileName;        //  имя файла, который мы отправляем
-    private int index;              //  номер части
-    private int parts;              //  общее число частей
-    private String filePartName;    //  имя куска файла
-    private byte[] data;            //  данные куска
+public class FilePartMessage extends AbstractMessage {                  //  отправка сообщения с частью файла
+    private final String fileName;        //  имя файла, который мы отправляем
+    private final int index;              //  номер части
+    private final int parts;              //  общее число частей
+    private final String filePartName;    //  имя куска файла
+    private final byte[] data;            //  данные куска
 
     public byte[] getData() {
         return data;
@@ -38,4 +38,5 @@ public class FilePartMessage extends AbstractMessage {
         this.filePartName = filePartName;
         this.data = Files.readAllBytes(path);
     }
+
 }

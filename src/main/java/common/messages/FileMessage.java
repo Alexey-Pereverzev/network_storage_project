@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class FileMessage extends AbstractMessage {
-    private String filename;
-    private byte[] data;
-    private boolean exists;
+public class FileMessage extends AbstractMessage {              //  отправка сообщения с файлом небольшого размера
+    private final String filename;
+    private final byte[] data;
     private int size;
 
 
@@ -21,7 +20,7 @@ public class FileMessage extends AbstractMessage {
 
 
     public FileMessage(Path path) throws IOException {
-        exists = Files.exists(path);
+        boolean exists = Files.exists(path);
         filename = path.getFileName().toString();
         data = Files.readAllBytes(path);
         if (exists) {
@@ -32,4 +31,5 @@ public class FileMessage extends AbstractMessage {
     public int getSize() {
         return size;
     }
+
 }

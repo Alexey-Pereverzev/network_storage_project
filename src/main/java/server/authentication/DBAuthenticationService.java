@@ -6,7 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 
 public class DBAuthenticationService implements AuthenticationService {
-
+    //  сервис аутентификации через БД с хешированными паролями
     private final HashEncoder hashEncoder;
     private Connection connection;
     private Statement stmt;
@@ -26,7 +26,7 @@ public class DBAuthenticationService implements AuthenticationService {
         String username = rs.getString("login");
         String passwordDB = rs.getString("password");
 
-        if (username!=null && passwordDB != null) {
+        if (username != null && passwordDB != null) {
             if (passwordDB.equals(hashEncoder.getHash(password)) && username.equals(login)) {
                 return "ok";
             } else {

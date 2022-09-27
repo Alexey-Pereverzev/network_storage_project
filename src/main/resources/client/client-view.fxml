@@ -10,40 +10,50 @@
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.ClientController">
    <bottom>
-      <SplitPane dividerPositions="0.167, 0.33, 0.5, 0.759" prefHeight="32.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+      <SplitPane dividerPositions="0.125, 0.25, 0.375, 0.5, 0.667, 0.833" prefHeight="32.0" prefWidth="600.0" BorderPane.alignment="CENTER">
          <items>
-            <AnchorPane prefHeight="200.0" prefWidth="200.0">
+            <AnchorPane maxHeight="32.0" maxWidth="100.0" minHeight="32.0" minWidth="95.0" prefHeight="32.0" prefWidth="100.0" SplitPane.resizableWithParent="false">
                <children>
-                  <Button fx:id="sendLocalButton" mnemonicParsing="false" onAction="#sendToCloud" text="Upload &gt;&gt;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Button fx:id="sendLocalButton" maxWidth="100.0" minWidth="95.0" mnemonicParsing="false" onAction="#sendToCloud" prefWidth="100.0" text="Upload &gt;&gt;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
-            <AnchorPane prefHeight="200.0" prefWidth="200.0">
+            <AnchorPane maxWidth="100.0" minWidth="95.0" prefHeight="200.0" prefWidth="100.0">
                <children>
-                  <Button fx:id="RefreshButton" mnemonicParsing="false" onAction="#refreshLocalFilesList" text="Refresh" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Button fx:id="mkDirClient" maxWidth="100.0" minWidth="95.0" mnemonicParsing="false" onAction="#makeDirClient" prefWidth="100.0" text="MkDir" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
-            <AnchorPane prefHeight="200.0" prefWidth="200.0">
+            <AnchorPane maxHeight="32.0" maxWidth="100.0" minHeight="32.0" minWidth="95.0" prefHeight="32.0" prefWidth="100.0" SplitPane.resizableWithParent="false">
                <children>
-                  <Button fx:id="deleteLocalButton" layoutX="21.0" layoutY="1.0" mnemonicParsing="false" onAction="#deleteLocalFile" text="Delete" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Button fx:id="RefreshButton" maxWidth="100.0" minWidth="95.0" mnemonicParsing="false" onAction="#refreshLocalFilesList" prefWidth="100.0" text="Refresh" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
-            <AnchorPane prefHeight="200.0" prefWidth="200.0">
+            <AnchorPane maxHeight="32.0" maxWidth="100.0" minHeight="32.0" minWidth="95.0" prefHeight="32.0" prefWidth="100.0" SplitPane.resizableWithParent="false">
                <children>
-                  <Button fx:id="sendCloudButton" layoutX="21.0" layoutY="5.0" mnemonicParsing="false" onAction="#sendToClient" text="&lt;&lt; Send" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Button fx:id="deleteLocalButton" layoutX="21.0" layoutY="1.0" maxWidth="100.0" minWidth="95.0" mnemonicParsing="false" onAction="#deleteLocalFile" prefWidth="100.0" text="Delete" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
-            <AnchorPane prefHeight="200.0" prefWidth="200.0">
+            <AnchorPane maxHeight="32.0" maxWidth="133.0" minHeight="32.0" minWidth="128.0" prefHeight="32.0" prefWidth="133.0" SplitPane.resizableWithParent="false">
                <children>
-                  <Button fx:id="deleteCloudButton" layoutX="21.0" layoutY="10.0" mnemonicParsing="false" onAction="#deleteFromCloud" text="Delete" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Button fx:id="sendCloudButton" layoutX="21.0" layoutY="5.0" maxWidth="133.0" minWidth="128.0" mnemonicParsing="false" onAction="#sendToClient" prefWidth="133.0" text="&lt;&lt; Download" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+               </children>
+            </AnchorPane>
+            <AnchorPane maxWidth="134.0" minWidth="129.0" prefHeight="200.0" prefWidth="134.0">
+               <children>
+                  <Button fx:id="mkDirCloud" maxWidth="133.0" minWidth="128.0" mnemonicParsing="false" onAction="#makeDirCloud" prefWidth="133.0" text="MkDir" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+               </children>
+            </AnchorPane>
+            <AnchorPane maxHeight="32.0" maxWidth="134.0" minHeight="32.0" minWidth="129.0" prefHeight="32.0" prefWidth="134.0" SplitPane.resizableWithParent="false">
+               <children>
+                  <Button fx:id="deleteCloudButton" layoutX="21.0" layoutY="10.0" maxWidth="133.0" minWidth="128.0" mnemonicParsing="false" onAction="#deleteFromCloud" prefWidth="133.0" text="Delete" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
          </items>
       </SplitPane>
    </bottom>
    <center>
-      <SplitPane dividerPositions="0.5" prefHeight="160.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+      <SplitPane dividerPositions="0.5" BorderPane.alignment="CENTER">
         <items>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+          <AnchorPane maxWidth="400.0" minWidth="400.0" prefWidth="400.0">
                <children>
                   <BorderPane layoutX="72.0" layoutY="100.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <top>
@@ -56,10 +66,10 @@
                      <center>
                         <BorderPane prefHeight="282.0" prefWidth="297.0" BorderPane.alignment="CENTER">
                            <left>
-                              <ListView fx:id="fileListLocal" prefHeight="166.0" prefWidth="152.0" BorderPane.alignment="CENTER" />
+                              <ListView fx:id="fileListLocal" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
                            </left>
                            <center>
-                              <ListView fx:id="fileSizesLocal" prefHeight="200.0" prefWidth="152.0" BorderPane.alignment="CENTER" />
+                              <ListView fx:id="fileSizesLocal" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
                            </center>
                            <top>
                               <BorderPane prefHeight="20.0" prefWidth="297.0" BorderPane.alignment="CENTER">
@@ -84,7 +94,7 @@
                   </BorderPane>
                </children>
             </AnchorPane>
-            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+            <AnchorPane maxWidth="400.0" minWidth="400.0" prefWidth="400.0">
                <children>
                   <BorderPane layoutX="72.0" layoutY="100.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <top>
@@ -97,10 +107,10 @@
                      <center>
                         <BorderPane prefHeight="282.0" prefWidth="297.0" BorderPane.alignment="CENTER">
                            <left>
-                              <ListView fx:id="fileListCloud" prefHeight="166.0" prefWidth="152.0" BorderPane.alignment="CENTER" />
+                              <ListView fx:id="fileListCloud" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
                            </left>
                            <center>
-                              <ListView fx:id="fileSizesCloud" prefHeight="200.0" prefWidth="152.0" BorderPane.alignment="CENTER" />
+                              <ListView fx:id="fileSizesCloud" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
                            </center>
                            <top>
                               <BorderPane prefHeight="20.0" prefWidth="297.0" BorderPane.alignment="CENTER">
