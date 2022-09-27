@@ -52,6 +52,8 @@ public class ClientController implements Initializable {
     private Button sendCloudButton;
     @FXML
     private Button sendLocalButton;
+    @FXML
+    private Button RefreshButton;
 
     private Map<Integer, String> selectedFiles;
 
@@ -70,21 +72,15 @@ public class ClientController implements Initializable {
         selectedFiles.put(CLOUD_FILE, "");                  // выбранный файл на стороне облака, "" - если файл не выбран
         fileListLocal.setItems(FXCollections.observableArrayList());
         fileListCloud.setItems(FXCollections.observableArrayList());
-        showClientFiles();                                 //   показать список файлов клиента
-        try {
-            showServerFiles();                              //  показать список файлов на сервере
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
     }
 
-    private void showClientFiles() {
+    protected void showClientFiles() {
         refreshLocalFilesList();                            //  обновить список файлов клиента и их размеров
         cellClickLogic(fileListLocal, CLIENT_FILE);         //  установить фабрику обработки клика на список файлов клиента
     }
 
 
-    private void showServerFiles() throws IOException, ClassNotFoundException {
+    protected void showServerFiles() throws IOException, ClassNotFoundException {
         getCloudFilesList();                                //  запросить список файлов с сервера
         cellClickLogic(fileListCloud, CLOUD_FILE);          //  установить фабрику обработки клика на список файлов сервера
     }
@@ -199,7 +195,7 @@ public class ClientController implements Initializable {
                             Files.delete(Path.of(partPathName));           // отправляем часть и удаляем ее
                         }
                         String[] files = new File((ROOT_PREFIX + "temp/")).list();
-                        if (files.length == 0) {
+                        if (files != null && files.length == 0) {
                             Files.delete(Path.of(ROOT_PREFIX + "temp/"));   //  удаляем директорию /temp
                         }
                     } catch (IOException e) {
@@ -233,6 +229,11 @@ public class ClientController implements Initializable {
                 e.printStackTrace();
             }
         }
+    }
+
+    @FXML
+    void refreshClient(ActionEvent event) {
+
     }
 
 }
