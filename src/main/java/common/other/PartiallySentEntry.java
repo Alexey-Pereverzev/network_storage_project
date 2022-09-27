@@ -25,4 +25,5 @@ public class PartiallySentEntry {           //  1 элемент списка п
         this.filePartName = filePartName;
         this.accept = accept;
     }
+
 }

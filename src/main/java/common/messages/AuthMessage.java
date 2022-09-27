@@ -2,8 +2,8 @@ package common.messages;
 
 
 public class AuthMessage extends AbstractMessage {
-    private String login;
-    private String password;
+    private final String login;
+    private final String password;
 
     public String getLogin() {
         return login;

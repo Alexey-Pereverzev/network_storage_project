@@ -2,7 +2,7 @@ package common.messages;
 
 
 public class AuthResponse extends AbstractMessage {         //  ответ авторизации
-    private String login;                                   //  логин пользователя
+    private final String login;                                   //  логин пользователя
     private final String authMessage;                     //  успешна ли авторизация
 
     public String getLogin() {

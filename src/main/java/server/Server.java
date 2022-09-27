@@ -11,17 +11,20 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 import server.authentication.AuthenticationService;
 import server.authentication.DBAuthenticationService;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 
 public class Server {
 
     public static final int MAX_FILE_SIZE = 10 * 1024 * 1024;
     public static final int MAX_OBJECT_SIZE = MAX_FILE_SIZE * 2;    //  максимальныцй размер объекта должен быть больше
-    // максимального размера куска файла, т.к. иначе некоторые сообщения от клиента, внутри которых лежит такой кусок, не         // "пролезут" через декодер
+    // максимального размера куска файла, т.к. иначе некоторые сообщения от клиента, внутри которых лежит такой кусок, не
+    // "пролезут" через декодер
     public static final String ROOT_PATH = "server_storage";
     public static final String ROOT_PREFIX = ROOT_PATH + "/";
     private final AuthenticationService authenticationService;
-    private HashMap<String, ChannelHandlerContext> authorizedClients;
+    private final HashMap<String, ChannelHandlerContext> authorizedClients;
 
     public AuthenticationService getAuthenticationService() {
         return authenticationService;
@@ -34,6 +37,9 @@ public class Server {
     }
 
     public void run() throws Exception {
+        if (Files.notExists(Path.of(ROOT_PATH))) {
+            Files.createDirectories(Path.of(ROOT_PATH));
+        }
         authenticationService.startAuthentication();
         EventLoopGroup mainGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -43,7 +49,7 @@ public class Server {
             b.group(mainGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
-                        protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        protected void initChannel(SocketChannel socketChannel) {
                             socketChannel.pipeline().addLast(
                                     new ObjectDecoder(MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
@@ -63,7 +69,8 @@ public class Server {
     }
 
     public static void main(String[] args) throws Exception {
-        new Server(new DBAuthenticationService(new HashEncoder()), new HashMap<>()).run();          //  запускаем сервер с авторизацией через БД
+        new Server(new DBAuthenticationService(new HashEncoder()), new HashMap<>()).run();
+        //  запускаем сервер с авторизацией через БД
     }
 }
 

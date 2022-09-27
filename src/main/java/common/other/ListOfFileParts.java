@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class ListOfFileParts {                  //  структура для хранения состояния процесса приемки файла
     ArrayList<PartiallySentEntry> entries;      //  список названий принятых частей
     private String fileName;                    //  название принимаемого файла
+    private final String currentPath;           //  путь до файла относительно корня сервера/клиента
     private int parts;                          //  количество частей для приемки
 
     public ArrayList<PartiallySentEntry> getEntries() {
@@ -17,6 +18,10 @@ public class ListOfFileParts {                  //  структура для х
 
     public String getFileName() {
         return fileName;
+    }
+
+    public String getCurrentPath() {
+        return currentPath;
     }
 
     public void setFileName(String fileName) {
@@ -36,13 +41,15 @@ public class ListOfFileParts {                  //  структура для х
         }
     }
 
-    public ListOfFileParts(String fileName) {
+    public ListOfFileParts(String fileName, String currentPath) {
         this.fileName = fileName;
         entries = new ArrayList<>();
+        this.currentPath = currentPath;
     }
 
     public void addEntries(PartiallySentEntry pse, int index) {            //  функция добавления части в список принятых частей
         this.entries.get(index).setAccept(pse.isAccept());
         this.entries.get(index).setFilePartName(pse.getFilePartName());
     }
+
 }
