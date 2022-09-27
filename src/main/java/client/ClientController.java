@@ -246,6 +246,9 @@ public class ClientController implements Initializable {
         if (fileName.length() > 0) {
             String currentClientPrefix = currentClientPath.equals("") ? "" : (currentClientPath + "/");
             Path path = Paths.get(ROOT_PREFIX + currentClientPrefix + fileName);
+            if (Files.isDirectory(path)) {
+                return;
+            }
             int fileSize = (int) Files.size(Paths.get(ROOT_PREFIX + currentClientPrefix + fileName));
             if (serverQuote < (usedServerSpace + fileSize)) {
                 ClientApplication ca = ObjectRegistry.getInstance(ClientApplication.class);

@@ -151,6 +151,9 @@ public class MainHandler extends ChannelInboundHandlerAdapter {             //  
         //      если получили запрос на скачивание
         String currentSuffix = (currentPrefix.equals("/")) ? "" : currentPrefix;
         if (Files.exists(Paths.get(rootDirPrefix + currentSuffix + fr.getFilename()))) {
+            if (Files.isDirectory(Paths.get(rootDirPrefix + currentSuffix + fr.getFilename()))) {
+                return;
+            }
             String fileName = fr.getFilename();
             Path path = Paths.get(rootDirPrefix + currentSuffix + fileName);
             if (Files.size(Paths.get(rootDirPrefix + currentSuffix + fr.getFilename())) <= Server.MAX_FILE_SIZE) {
