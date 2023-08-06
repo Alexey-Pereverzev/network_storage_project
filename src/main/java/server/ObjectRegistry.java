@@ -7,9 +7,6 @@ public class ObjectRegistry {
 
     private static final Map<Class<?>, Object> INSTANCE_REGISTRY = new HashMap<>();
 
-    static {
-    }
-
     public static void reg(Class<?> clazz, Object instance) {
         INSTANCE_REGISTRY.put(clazz, instance);
     }

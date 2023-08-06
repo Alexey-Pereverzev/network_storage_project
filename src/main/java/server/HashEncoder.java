@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class HashEncoder {
+public class HashEncoder {              //  хеширование пароля для проверки при авторизации
 
     private static String bytesToHex(byte[] hash) {
         StringBuilder hexString = new StringBuilder(2 * hash.length);
@@ -19,10 +19,9 @@ public class HashEncoder {
     }
 
     public String getHash(String originalString) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] encodedhash = digest.digest(originalString.getBytes(StandardCharsets.UTF_8));
-        return bytesToHex(encodedhash);
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        byte[] encodedHash = md.digest(originalString.getBytes(StandardCharsets.UTF_8));
+        return bytesToHex(encodedHash);
     }
-
 
 }
